@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Trains a simple deep NN on the MNIST dataset.
-Gets to 98.90% test accuracy after 30 epochs
+Gets to 98.80% test accuracy after 30 epochs
 """
 import numpy  as np
 import pandas as pd
@@ -11,7 +11,8 @@ from keras.datasets import mnist
 from keras.models       import Sequential
 from keras.layers       import Dense
 from keras.layers.noise import GaussianNoise
-from keras.optimizers   import Adam 
+from keras.optimizers   import Nadam 
+from keras.callbacks    import ModelCheckpoint, EarlyStopping
 from keras.utils        import to_categorical
 
 def main():
@@ -29,15 +30,33 @@ def main():
 
     model.summary()
 
-    model.compile(optimizer=Adam(), 
+    model.compile(optimizer=Nadam(), 
                   loss="categorical_crossentropy", 
                   metrics=["accuracy"])
 
-    model.fit(x_train, y_train,
-              batch_size=128, epochs=30, validation_data=(x_test,y_test))
+    chkpt = ModelCheckpoint(filepath='dnn_weights.hdf5', 
+                            monitor='val_acc', 
+                            verbose=1, 
+                            save_best_only=True, 
+                            save_weights_only=True, 
+                            mode='max')
 
-    print(model.evaluate(x_test, y_test))
+    early_stop = EarlyStopping(monitor='val_acc', 
+                               patience=20, 
+                               verbose=1, 
+                               mode='max')
+    
+    model.fit(x_train, 
+              y_train,
+              batch_size=128, 
+              epochs=200, 
+              callbacks=[chkpt, early_stop], 
+              validation_data=(x_test,y_test))
+    
 
+    model.load_weights(filepath='dnn_weights.hdf5')
+
+    print(model.metrics_names, model.evaluate(x_test, y_test, batch_size=x_test.shape[0]))
 
 if __name__ == '__main__':
     main()
