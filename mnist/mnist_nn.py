@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 """
-Trains a simple deep NN on the MNIST dataset.
-Gets to 98.80% test accuracy after 30 epochs
+Trains a deep NN on the MNIST dataset.
+Gets to 98.80% test accuracy
 """
 import numpy  as np
 import pandas as pd
 
 from keras.datasets import mnist
 
-from keras.models       import Sequential
+from keras.models       import Sequential, load_model
 from keras.layers       import Dense
 from keras.layers.noise import GaussianNoise
-from keras.optimizers   import Nadam 
+from keras.optimizers   import Adam 
 from keras.callbacks    import ModelCheckpoint, EarlyStopping
 from keras.utils        import to_categorical
 
@@ -30,15 +30,14 @@ def main():
 
     model.summary()
 
-    model.compile(optimizer=Nadam(), 
+    model.compile(optimizer=Adam(), 
                   loss="categorical_crossentropy", 
                   metrics=["accuracy"])
 
-    chkpt = ModelCheckpoint(filepath='dnn_weights.hdf5', 
+    chkpt = ModelCheckpoint(filepath='model.hdf5', 
                             monitor='val_acc', 
                             verbose=1, 
-                            save_best_only=True, 
-                            save_weights_only=True, 
+                            save_best_only=True,
                             mode='max')
 
     early_stop = EarlyStopping(monitor='val_acc', 
@@ -54,7 +53,7 @@ def main():
               validation_data=(x_test,y_test))
     
 
-    model.load_weights(filepath='dnn_weights.hdf5')
+    model = load_model(filepath='model.hdf5')
 
     print(model.metrics_names, model.evaluate(x_test, y_test, batch_size=x_test.shape[0]))
 

@@ -100,6 +100,9 @@ ENV/
 # mypy
 .mypy_cache/
 
+# VS Code
+.vscode/
+
 # Data Files
 *.hdf5
 *.csv
